@@ -1,5 +1,4 @@
 from openpyxl import load_workbook
-from openpyxl.styles import Font, Fill, Border, Alignment
 
 # Load the Excel file
 file_path = 'your_file.xlsx'
@@ -14,35 +13,38 @@ def get_css_style(cell):
     style = ""
     
     # Font styles
-    if cell.font:
+    if hasattr(cell, 'font') and cell.font:
         if cell.font.bold:
             style += "font-weight: bold; "
         if cell.font.italic:
             style += "font-style: italic; "
         if cell.font.underline:
             style += "text-decoration: underline; "
-        if cell.font.color:
+        if hasattr(cell.font, 'color') and cell.font.color:
             style += f"color: #{cell.font.color.rgb[2:]}; "  # Convert color to hex
     
     # Background color
-    if cell.fill:
-        if cell.fill.start_color.rgb:
+    if hasattr(cell, 'fill') and cell.fill:
+        if hasattr(cell.fill, 'start_color') and cell.fill.start_color:
             style += f"background-color: #{cell.fill.start_color.rgb[2:]}; "
     
     # Borders
-    if cell.border:
+    if hasattr(cell, 'border') and cell.border:
         border_style = ""
         for side in ['left', 'right', 'top', 'bottom']:
-            border = getattr(cell.border, side)
-            if border.style:
-                border_style += f"border-{side}: {border.style} #{border.color.rgb[2:]}; "
+            if hasattr(cell.border, side):
+                border = getattr(cell.border, side)
+                if hasattr(border, 'style') and border.style:
+                    border_color = getattr(border, 'color', None)
+                    if border_color and hasattr(border_color, 'rgb'):
+                        border_style += f"border-{side}: {border.style} #{border_color.rgb[2:]}; "
         style += border_style
     
     # Alignment
-    if cell.alignment:
-        if cell.alignment.horizontal:
+    if hasattr(cell, 'alignment') and cell.alignment:
+        if hasattr(cell.alignment, 'horizontal') and cell.alignment.horizontal:
             style += f"text-align: {cell.alignment.horizontal}; "
-        if cell.alignment.vertical:
+        if hasattr(cell.alignment, 'vertical') and cell.alignment.vertical:
             style += f"vertical-align: {cell.alignment.vertical}; "
     
     return style
@@ -53,7 +55,8 @@ for row in cell_range:
     html_table += '<tr>\n'
     for cell in row:
         cell_style = get_css_style(cell)
-        html_table += f'<td style="{cell_style}">{cell.value}</td>\n'
+        cell_value = cell.value if cell.value is not None else ""
+        html_table += f'<td style="{cell_style}">{cell_value}</td>\n'
     html_table += '</tr>\n'
 html_table += '</table>'
 
