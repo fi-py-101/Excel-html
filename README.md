@@ -21,12 +21,18 @@ def get_css_style(cell):
         if cell.font.underline:
             style += "text-decoration: underline; "
         if hasattr(cell.font, 'color') and cell.font.color:
-            style += f"color: #{cell.font.color.rgb[2:]}; "  # Convert color to hex
+            if hasattr(cell.font.color, 'rgb'):
+                # Extract RGB value and remove the 'FF' prefix (alpha channel)
+                rgb_hex = cell.font.color.rgb[2:]  # Skip the first two characters
+                style += f"color: #{rgb_hex}; "
     
     # Background color
     if hasattr(cell, 'fill') and cell.fill:
         if hasattr(cell.fill, 'start_color') and cell.fill.start_color:
-            style += f"background-color: #{cell.fill.start_color.rgb[2:]}; "
+            if hasattr(cell.fill.start_color, 'rgb'):
+                # Extract RGB value and remove the 'FF' prefix (alpha channel)
+                rgb_hex = cell.fill.start_color.rgb[2:]  # Skip the first two characters
+                style += f"background-color: #{rgb_hex}; "
     
     # Borders
     if hasattr(cell, 'border') and cell.border:
@@ -37,7 +43,9 @@ def get_css_style(cell):
                 if hasattr(border, 'style') and border.style:
                     border_color = getattr(border, 'color', None)
                     if border_color and hasattr(border_color, 'rgb'):
-                        border_style += f"border-{side}: {border.style} #{border_color.rgb[2:]}; "
+                        # Extract RGB value and remove the 'FF' prefix (alpha channel)
+                        rgb_hex = border_color.rgb[2:]  # Skip the first two characters
+                        border_style += f"border-{side}: {border.style} #{rgb_hex}; "
         style += border_style
     
     # Alignment
