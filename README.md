@@ -1,76 +1,79 @@
-2
+3
 from openpyxl import load_workbook
 
-# Load the Excel file
-file_path = 'your_file.xlsx'
-wb = load_workbook(file_path)
-ws = wb['Sheet1']  # Replace with your sheet name
+def get_rgb_hex(color):
+    """Safely extract RGB hex from openpyxl color objects."""
+    if color is None:
+        return None
+    if hasattr(color, 'rgb') and color.rgb is not None:
+        # Remove alpha channel (first two characters) if present
+        return color.rgb[2:] if len(color.rgb) == 8 else color.rgb
+    elif hasattr(color, 'indexed') and color.indexed is not None:
+        # Handle indexed colors (fallback to black)
+        return '000000'  # Default to black
+    return None  # Unsupported color type
 
-# Define the range of cells (e.g., A1:C3)
-cell_range = ws['A1:C3']
-
-# Function to convert openpyxl styles to CSS
 def get_css_style(cell):
-    style = ""
+    style = []
     
     # Font styles
-    if hasattr(cell, 'font') and cell.font:
-        if cell.font.bold:
-            style += "font-weight: bold; "
-        if cell.font.italic:
-            style += "font-style: italic; "
-        if cell.font.underline:
-            style += "text-decoration: underline; "
-        if hasattr(cell.font, 'color') and cell.font.color:
-            if hasattr(cell.font.color, 'rgb'):
-                # Extract RGB value and remove the 'FF' prefix (alpha channel)
-                rgb_hex = cell.font.color.rgb[2:]  # Skip the first two characters
-                style += f"color: #{rgb_hex}; "
-    
+    if cell.font:
+        font = cell.font
+        if font.bold:
+            style.append("font-weight: bold")
+        if font.italic:
+            style.append("font-style: italic")
+        if font.underline:
+            style.append("text-decoration: underline")
+        if font.color:
+            rgb_hex = get_rgb_hex(font.color)
+            if rgb_hex:
+                style.append(f"color: #{rgb_hex}")
+
     # Background color
-    if hasattr(cell, 'fill') and cell.fill:
-        if hasattr(cell.fill, 'start_color') and cell.fill.start_color:
-            if hasattr(cell.fill.start_color, 'rgb'):
-                # Extract RGB value and remove the 'FF' prefix (alpha channel)
-                rgb_hex = cell.fill.start_color.rgb[2:]  # Skip the first two characters
-                style += f"background-color: #{rgb_hex}; "
-    
+    if cell.fill:
+        fill = cell.fill
+        if fill.start_color:
+            rgb_hex = get_rgb_hex(fill.start_color)
+            if rgb_hex:
+                style.append(f"background-color: #{rgb_hex}")
+
     # Borders
-    if hasattr(cell, 'border') and cell.border:
-        border_style = ""
+    if cell.border:
+        border = cell.border
         for side in ['left', 'right', 'top', 'bottom']:
-            if hasattr(cell.border, side):
-                border = getattr(cell.border, side)
-                if hasattr(border, 'style') and border.style:
-                    border_color = getattr(border, 'color', None)
-                    if border_color and hasattr(border_color, 'rgb'):
-                        # Extract RGB value and remove the 'FF' prefix (alpha channel)
-                        rgb_hex = border_color.rgb[2:]  # Skip the first two characters
-                        border_style += f"border-{side}: {border.style} #{rgb_hex}; "
-        style += border_style
-    
+            border_side = getattr(border, side)
+            if border_side.style:
+                border_color = getattr(border_side, 'color', None)
+                rgb_hex = get_rgb_hex(border_color)
+                if rgb_hex:
+                    style.append(f"border-{side}: 1px solid #{rgb_hex}")
+
     # Alignment
-    if hasattr(cell, 'alignment') and cell.alignment:
-        if hasattr(cell.alignment, 'horizontal') and cell.alignment.horizontal:
-            style += f"text-align: {cell.alignment.horizontal}; "
-        if hasattr(cell.alignment, 'vertical') and cell.alignment.vertical:
-            style += f"vertical-align: {cell.alignment.vertical}; "
-    
-    return style
+    if cell.alignment:
+        align = cell.alignment
+        if align.horizontal:
+            style.append(f"text-align: {align.horizontal}")
+        if align.vertical:
+            style.append(f"vertical-align: {align.vertical}")
+
+    return "; ".join(style)
+
+# Load the Excel file
+wb = load_workbook('your_file.xlsx')
+ws = wb.active  # Use the active sheet
 
 # Generate HTML table
-html_table = '<table style="border-collapse: collapse;">\n'
-for row in cell_range:
-    html_table += '<tr>\n'
+html = ['<table style="border-collapse: collapse; border: 1px solid black;">']
+for row in ws.iter_rows(min_row=1, max_row=3, min_col=1, max_col=3):  # A1:C3
+    html.append('<tr>')
     for cell in row:
-        cell_style = get_css_style(cell)
         cell_value = cell.value if cell.value is not None else ""
-        html_table += f'<td style="{cell_style}">{cell_value}</td>\n'
-    html_table += '</tr>\n'
-html_table += '</table>'
+        cell_style = get_css_style(cell)
+        html.append(f'<td style="{cell_style}">{cell_value}</td>')
+    html.append('</tr>')
+html.append('</table>')
 
-# Save the HTML to a file
+# Save to file
 with open('output.html', 'w') as f:
-    f.write(html_table)
-
-print("HTML table generated and saved to output.html")
+    f.write("\n".join(html))
