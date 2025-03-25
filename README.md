@@ -1,5 +1,15 @@
-spark.conf.set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
-spark.conf.set("spark.hadoop.fs.defaultFS", "file:///")
+% Change vs Last 3 Months = 
+VAR CurrentMonthRevenue = SUM(Revenue[Amount])
 
-csv_path = r"file://server/shared/file.csv"
-df = spark.read.csv(csv_path, header=True, inferSchema=True)
+VAR Last3MonthsAvg = 
+    CALCULATE(
+        AVERAGE(Revenue[Amount]),
+        DATESINPERIOD(Revenue[Month], MAX(Revenue[Month]), -3, MONTH)
+    )
+
+RETURN 
+IF(
+    NOT ISBLANK(Last3MonthsAvg),
+    (CurrentMonthRevenue - Last3MonthsAvg) / Last3MonthsAvg,
+    BLANK()
+)
