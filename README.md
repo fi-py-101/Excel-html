@@ -1,14 +1,18 @@
-Enabled Count = 
-CALCULATE(
-    COUNTROWS(MIDaily),
-    MIDaily[Normalized Status] = "Enabled"
+-- Step 2: Create Measure Selector Table
+Measure Selector = DATATABLE(
+    "Measure Label", STRING,
+    {
+        {"Enabled Count"},
+        {"Not Enabled Count"},
+        {"Total Count"}
+    }
 )
 
-Not Enabled Count = 
-CALCULATE(
-    COUNTROWS(MIDaily),
-    MIDaily[Normalized Status] <> "Enabled"
+-- Step 4: Create Dynamic Measure
+Selected Measure Value = 
+SWITCH(
+    SELECTEDVALUE('Measure Selector'[Measure Label]),
+    "Enabled Count", [Enabled Count],
+    "Not Enabled Count", [Not Enabled Count],
+    "Total Count", [Total Count]
 )
-
-Total Requests = 
-COUNTROWS(MIDaily)
