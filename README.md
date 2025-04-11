@@ -16,3 +16,16 @@ SWITCH(
     "Not Enabled Count", [Not Enabled Count],
     "Total Count", [Total Count]
 )
+Dynamic Enabled Count =
+IF(
+    SELECTEDVALUE('Measure Selector'[Measure Label]) = "Enabled Count",
+    CALCULATE(COUNTROWS(MIDaily), MIDaily[Normalised Status] = "Enabled"),
+    0
+)
+
+Dynamic Not Enabled Count =
+IF(
+    SELECTEDVALUE('Measure Selector'[Measure Label]) = "Not Enabled Count",
+    CALCULATE(COUNTROWS(MIDaily), MIDaily[Normalised Status] <> "Enabled"),
+    0
+)
