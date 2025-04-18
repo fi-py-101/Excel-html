@@ -1,11 +1,11 @@
-Total RFEs Raised = 
-COUNTROWS(MIDaily)
-
-RFEs Enabled Within 30 Days = 
+Outstanding Backlog = 
+61297 - 
 CALCULATE(
     COUNTROWS(MIDaily),
-    MIDaily[IsEnabled] = "Yes" &&
-    MIDaily[EnabledWithin30] = "Yes"
+    MIDaily[IsBacklog] = "Backlog",
+    MIDaily[IsEnabled] = "Yes",
+    FILTER(
+        ALLSELECTED(MIDaily[Enablement_Month]),
+        MIDaily[Enablement_Month] <= MAX(MIDaily[Enablement_Month])
+    )
 )
-
-This chart shows how many RFEs were raised each month and how many of those were enabled within 30 days of the request. Use filters above to slice by Platform and Product Group.
