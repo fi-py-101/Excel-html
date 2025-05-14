@@ -1,32 +1,14 @@
-// ========== DATE TABLES (Dynamic range) ==========
+// ================= DATE TABLES =================
 
 EnablementDateTable =
-VAR MinDate = CALCULATE(MIN(rfq_joined[Enablement Date]), REMOVEFILTERS(rfq_joined))
-VAR MaxDate = CALCULATE(MAX(rfq_joined[Enablement Date]), REMOVEFILTERS(rfq_joined))
-RETURN
-ADDCOLUMNS (
-    CALENDAR(MinDate, MaxDate),
-    "Year", YEAR([Date]),
-    "Month Number", MONTH([Date]),
-    "Month Name", FORMAT([Date], "MMMM"),
-    "Year-Month", FORMAT([Date], "YYYY-MM")
-)
+CALENDAR(MIN(rfq_joined[Enablement Date]), MAX(rfq_joined[Enablement Date]))
 
 BusinessMetricsDateTable =
-VAR MinDate = CALCULATE(MIN(rfq_joined[Date]), REMOVEFILTERS(rfq_joined))
-VAR MaxDate = CALCULATE(MAX(rfq_joined[Date]), REMOVEFILTERS(rfq_joined))
-RETURN
-ADDCOLUMNS (
-    CALENDAR(MinDate, MaxDate),
-    "Year", YEAR([Date]),
-    "Month Number", MONTH([Date]),
-    "Month Name", FORMAT([Date], "MMMM"),
-    "Year-Month", FORMAT([Date], "YYYY-MM")
-)
+CALENDAR(MIN(rfq_joined[Date]), MAX(rfq_joined[Date]))
 
-// ========== FILTERED DV01 ==========
+// ================= FILTERED DV01 =================
 
-FilteredDV01 :=
+FilteredDV01 =
 VAR EnabledPairs =
     CALCULATETABLE(
         SUMMARIZE(
@@ -46,9 +28,9 @@ CALCULATE(
     TREATAS(VALUES(BusinessMetricsDateTable[Date]), rfq_joined[Date])
 )
 
-// ========== FILTERED NOMINAL ==========
+// ================= FILTERED NOMINAL =================
 
-FilteredNominal :=
+FilteredNominal =
 VAR EnabledPairs =
     CALCULATETABLE(
         SUMMARIZE(
@@ -68,9 +50,9 @@ CALCULATE(
     TREATAS(VALUES(BusinessMetricsDateTable[Date]), rfq_joined[Date])
 )
 
-// ========== FILTERED TICKETS ==========
+// ================= FILTERED TICKETS =================
 
-FilteredTickets :=
+FilteredTickets =
 VAR EnabledPairs =
     CALCULATETABLE(
         SUMMARIZE(
